@@ -268,6 +268,7 @@ export default function App() {
         }));
         clearDraft();
         setToast({ message: "Cleared", type: "info" });
+        setActiveCategory("All");
         setConfirmDialog(null);
       },
     });
@@ -292,6 +293,7 @@ export default function App() {
 
     clearDraft();
     setToast({ message: "Completed", type: "success" });
+    setActiveCategory("All");
 
     setTimeout(() => setSale(createNewSale()), 450);
   }
@@ -304,6 +306,7 @@ export default function App() {
     ]);
     clearDraft();
     setSale(createNewSale());
+    setActiveCategory("All");
     setToast({ message: "Parked", type: "warning" });
   }
 
@@ -313,6 +316,7 @@ export default function App() {
       setParkedSales((p) => p.filter((s) => s.id !== parkedSale.id));
       setShowParkedSales(false);
       setToast({ message: "Restored", type: "success" });
+      setActiveCategory("All");
       setConfirmDialog(null);
     };
 
@@ -552,7 +556,7 @@ export default function App() {
             <button
               onClick={completeSale}
               disabled={cartItems.length === 0}
-              className="w-full bg-green-600 text-white rounded-xl py-3 font-semibold disabled:opacity-50"
+              className="w-full bg-green-600 text-white rounded-xl py-3 font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600"
             >
               Complete Sale
             </button>
@@ -560,21 +564,18 @@ export default function App() {
             <button
               onClick={parkSale}
               disabled={cartItems.length === 0}
-              
-                className="w-full rounded-xl py-2 text-sm font-semibold
-             bg-amber-500 text-white hover:bg-amber-600
-             disabled:opacity-50 disabled:cursor-not-allowed"
->
-            
+              className="w-full rounded-xl py-2.5 font-semibold bg-amber-500 text-white hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
+            >
               Park Sale
             </button>
 
             <button
-  onClick={clearSale}
-  className="w-full text-sm text-gray-600 bg-gray-100 rounded-xl py-2 font-semibold transition"
->
-  Cancel Sale
-</button>
+              onClick={clearSale}
+              disabled={cartItems.length === 0}
+              className="w-full text-gray-600 bg-gray-100 rounded-xl py-2.5 font-semibold hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100"
+            >
+              Cancel Sale
+            </button>
           </div>
         </aside>
       </div>
@@ -688,13 +689,13 @@ export default function App() {
                         <div className="flex gap-2 mt-auto">
                           <button
                             onClick={() => restoreParkedSale(parked)}
-                            className="flex-[2] bg-green-600 text-white py-1.5 text-xs rounded-xl text-sm font-semibold hover:bg-green-700 transition"
+                            className="flex-[2] bg-green-600 text-white py-1.5 rounded-xl text-xs font-semibold hover:bg-green-700 transition"
                           >
                             Resume Sale
                           </button>
-                          <button  
+                          <button
                             onClick={() => deleteParkedSale(parked.id)}
-                            className="flex-[1] border-2 border-red-300 text-red-600 py-1.5 text-xs rounded-xl text-base font-semibold hover:bg-red-50 transition"
+                            className="flex-[1] border-2 border-red-300 text-red-600 py-1.5 rounded-xl text-xs font-semibold hover:bg-red-50 transition"
                           >
                             Clear
                           </button>
