@@ -70,8 +70,13 @@ export default function App() {
   const searchRef = useRef<HTMLInputElement | null>(null);
   const barcodeBufferRef = useRef<string>("");
   const barcodeTimerRef = useRef<number | null>(null);
+  const completeSaleRef = useRef<() => void>(() => {});
+  const parkSaleRef = useRef<() => void>(() => {});
+  const clearSaleRef = useRef<() => void>(() => {});
+  const addToCartRef = useRef<(product: Product) => void>(() => {});
 
   const [query, setQuery] = useState("");
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showParkedSales, setShowParkedSales] = useState(false);
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "All">("All");
@@ -117,6 +122,11 @@ export default function App() {
     [cartItems]
   );
 
+  const reversedCartItems = useMemo(
+    () => [...cartItems].reverse(),
+    [cartItems]
+  );
+
   /* ================= persistence ================= */
 
   useEffect(() => saveDraft(sale), [sale]);
@@ -134,6 +144,23 @@ export default function App() {
   useEffect(() => {
     // Auto-focus search on mount
     searchRef.current?.focus();
+  }, []);
+
+  // Keep function refs up to date
+  useEffect(() => {
+    completeSaleRef.current = completeSale;
+    parkSaleRef.current = parkSale;
+    clearSaleRef.current = clearSale;
+    addToCartRef.current = addToCart;
+  });
+
+  /* ================= live clock ================= */
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   /* ================= keyboard shortcuts + barcode scanner ================= */
@@ -162,7 +189,7 @@ export default function App() {
               p.name.toLowerCase().includes(barcode.toLowerCase())
             );
             if (product && !isTypingTarget(e.target)) {
-              addToCart(product);
+              addToCartRef.current(product);
               setToast({ message: product.name, type: "success" });
             }
           }
@@ -189,7 +216,7 @@ export default function App() {
         } else {
           // Clear sale if not typing + clear barcode buffer
           barcodeBufferRef.current = "";
-          clearSale();
+          clearSaleRef.current();
         }
         return;
       }
@@ -197,8 +224,8 @@ export default function App() {
       if (isTypingTarget(e.target)) return;
 
       // Enter completes the sale
-      if (e.key === "Enter") completeSale();
-      if (e.key.toLowerCase() === "p") parkSale();
+      if (e.key === "Enter") completeSaleRef.current();
+      if (e.key.toLowerCase() === "p") parkSaleRef.current();
     }
 
     window.addEventListener("keydown", onKeyDown);
@@ -206,7 +233,7 @@ export default function App() {
       window.removeEventListener("keydown", onKeyDown);
       if (barcodeTimerRef.current) clearTimeout(barcodeTimerRef.current);
     };
-  }, [sale.items.length]);
+  }, []); // ✅ Empty deps - listener only set up once
 
   /* ================= actions ================= */
 
@@ -277,8 +304,6 @@ export default function App() {
   function completeSale() {
     if (cartItems.length === 0) return setToast({ message: "Cart is empty", type: "info" });
 
-    setSale((prev) => ({ ...prev, status: "completed" }));
-
     setHistory((prev) =>
       [
         {
@@ -294,8 +319,7 @@ export default function App() {
     clearDraft();
     setToast({ message: "Completed", type: "success" });
     setActiveCategory("All");
-
-    setTimeout(() => setSale(createNewSale()), 450);
+    setSale(createNewSale());
   }
 
   function parkSale() {
@@ -369,11 +393,15 @@ export default function App() {
         <div className="flex items-center gap-4">
           <div>
             <div className="text-sm font-semibold">
-              Sale #{sale.saleNumber} • {sale.status.toUpperCase()}
-            </div>
-            <div className="text-xs text-gray-500">
-              {sale.status === "draft" &&
-                `Updated ${minutesAgo(sale.lastUpdatedAt)}`}
+              Sale #{sale.saleNumber}
+              {sale.status === "draft" && (
+                <>
+                  {" • "}
+                  <span className="text-xs text-gray-500">
+                    {currentTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </>
+              )}
             </div>
           </div>
           {parkedSales.length > 0 && (
@@ -405,7 +433,7 @@ export default function App() {
                 }}
                 onFocus={() => setShowSearchResults(query.trim().length > 0)}
                 placeholder="Search products or scan barcode... (Press / or F3)"
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-sm font-medium placeholder:text-gray-400"
+                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-gray-300 focus:bg-gray-50 focus:outline-none text-sm font-medium placeholder:text-gray-400"
               />
               {query && (
                 <button
@@ -423,12 +451,12 @@ export default function App() {
 
             {/* Search Results Dropdown */}
             {showSearchResults && searchResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-white border-2 border-blue-500 rounded-xl shadow-lg max-h-80 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-300 rounded-xl shadow-lg max-h-80 overflow-y-auto">
                 {searchResults.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => addToCart(p)}
-                    className="w-full px-4 py-3 text-left hover:bg-blue-50 transition flex justify-between items-center border-b last:border-b-0"
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 transition flex justify-between items-center border-b last:border-b-0"
                   >
                     <div>
                       <div className="text-sm font-semibold">{p.name}</div>
@@ -468,7 +496,7 @@ export default function App() {
 
           {/* Product Grid - Filtered by category */}
           <div className="overflow-y-scroll pb-4 pr-2">
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
             {filteredProducts.map((p) => (
               <button
                 key={p.id}
@@ -486,9 +514,9 @@ export default function App() {
                 </div>
                 <div className="flex justify-between items-center gap-2">
                   <span className="text-xs font-bold">{money(p.price)}</span>
-                  <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                  {/* <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
                     ADD
-                  </span>
+                  </span> */}
                 </div>
               </button>
             ))}
@@ -504,7 +532,7 @@ export default function App() {
                 Cart is empty
               </div>
             ) : (
-              [...cartItems].reverse().map((it, idx) => (
+              reversedCartItems.map((it, idx) => (
                 <div
                   key={it.productId}
                   className={`flex justify-between items-center p-2 rounded-lg transition ${
@@ -547,6 +575,10 @@ export default function App() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Subtotal</span>
               <span className="font-semibold">{money(subtotal)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>Quantity</span>
+              <span className="font-semibold">{cartItems.reduce((sum, it) => sum + it.qty, 0)}</span>
             </div>
             <div className="flex justify-between text-xl font-extrabold">
               <span>TOTAL</span>
@@ -649,7 +681,7 @@ export default function App() {
                             Sale #{parked.saleNumber}
                           </div>
                           <div className="text-xs text-gray-500 mb-2">
-                            {minutesAgo(parked.lastUpdatedAt)}
+                            {new Date(parked.lastUpdatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} ({minutesAgo(parked.lastUpdatedAt)})
                           </div>
                           <div className="text-lg font-bold text-amber-600">
                             {money(parkedTotal)}
