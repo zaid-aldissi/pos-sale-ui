@@ -4,6 +4,8 @@ export type Product = {
   id: string; // unique product identifier
   name: string; // product name
   price: number; // JOD
+  barcode: string; // barcode for scanner
+  category: ProductCategory; // product category
 };
 
 export type CartItem = {
@@ -22,3 +24,10 @@ export type SaleDraft = {
   items: CartItem[]; // items in the cart
 };
 
+export type ProductCategory =
+  | "Drinks"
+  | "Snacks"
+  | "Food"
+  | "Coffee"
+  | "Desserts"
+  | "Meals";

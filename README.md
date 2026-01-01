@@ -1,73 +1,102 @@
-# React + TypeScript + Vite
+# POS Sale UI – Cashier-First Design
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Point-of-Sale sale screen focused on **speed, clarity, and real cashier workflows**.  
+This project prioritizes usability under pressure rather than visual flair.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎯 Design Philosophy
 
-## React Compiler
+> A good POS UI should be **boring, fast, and invisible**.  
+> The cashier should never think about the interface — it just works.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Key principles:
+- Muscle memory over dynamic layouts
+- Keyboard and barcode-first workflows
+- Error prevention over feature density
+- Minimal cognitive load
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✅ Key UX Decisions
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 1. Fixed Product Grid (Muscle Memory)
+- Product positions never change
+- Searching does **not** rearrange the grid
+- Enables fast, repetitive actions without visual scanning
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 2. Search Overlay (Non-Disruptive)
+- Search results appear in a dropdown overlay
+- Grid remains untouched
+- Selecting a result adds to cart and clears search
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 3. Barcode Scanner Support
+- Detects rapid keyboard input (scanner behavior)
+- Auto-adds matching products
+- Provides instant visual feedback
+- No configuration required
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 4. Keyboard-First Workflow
+- `/` or `F3` → focus search
+- `Enter` → complete sale
+- `P` → park sale
+- `ESC` → clear search or cancel sale (with confirmation)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 5. Auto-Focus Logic
+- Search is always ready for the next action
+- After adding an item, focus returns automatically
+- Optimized for continuous scanning
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 6. Clear Visual Feedback
+- Product card flashes when added
+- Last added item highlighted in cart
+- Prevents double-scan mistakes
+
+### 7. Park Sale Flow
+- Sales can be parked safely during interruptions
+- Parked sales are clearly visible and restorable
+- Destructive actions are confirmed and visually de-emphasized
+
+---
+
+## 🧠 UX Principles Applied
+
+- **Fitts’s Law**: Large touch targets for frequent actions
+- **Cognitive Load Reduction**: Single screen, predictable layout
+- **Muscle Memory**: Fixed positions and consistent shortcuts
+- **Error Prevention**: Confirmations, visual feedback
+- **Speed Optimization**: Zero unnecessary clicks
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Key | Action |
+|-----|-------|
+| `/` or `F3` | Focus search |
+| `Enter` | Complete sale |
+| `P` | Park sale |
+| `ESC` | Clear search or cancel sale |
+| Fast typing | Barcode scanner detection |
+
+---
+
+## 🚀 Scope Note
+
+This project intentionally focuses on the **sale screen only**.  
+Features such as payments, discounts, receipts, and permissions are out of scope.
+
+---
+
+## 🛠 Tech Stack
+
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- LocalStorage (mock persistence)
+
+---
+
+## 📌 Final Note
+
+This UI is designed to support **real retail pressure**, interruptions, and repetitive workflows — not demos or marketing screens.
