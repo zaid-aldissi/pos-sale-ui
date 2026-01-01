@@ -3,6 +3,14 @@
 A production-ready Point-of-Sale sale screen built with **speed, usability, and real-world workflows** in mind.  
 Designed for cashiers who need a fast, reliable interface under pressure.
 
+🚀 **[Live Demo](https://pos-sale-ui.netlify.app/)** | 📦 **[GitHub Repository](https://github.com/zaid-aldissi/pos-sale-ui)**
+
+---
+
+## 📸 Preview
+
+![POS Sale UI Interface](https://i.postimg.cc/c1PZfxJ1/Macbook-Air-pos-sale-ui-netlify-app.png)
+
 ---
 
 ## 🎯 Design Philosophy
