@@ -258,7 +258,7 @@ export default function App() {
 
   function clearSale() {
     setConfirmDialog({
-      message: "Clear current sale?",
+      message: "Cancel this sale and clear all items?",
       onConfirm: () => {
         setSale((prev) => ({
       ...prev,
@@ -267,7 +267,7 @@ export default function App() {
       lastUpdatedAt: now(),
         }));
         clearDraft();
-        setToast({ message: "Cleared", type: "info" });
+        setToast({ message: "Sale Cancelled", type: "info" });
         setActiveCategory("All");
         setConfirmDialog(null);
       },
@@ -315,14 +315,14 @@ export default function App() {
       setSale({ ...parkedSale, status: "draft", lastUpdatedAt: now() });
       setParkedSales((p) => p.filter((s) => s.id !== parkedSale.id));
       setShowParkedSales(false);
-      setToast({ message: "Restored", type: "success" });
+      setToast({ message: "Sale Resumed", type: "success" });
       setActiveCategory("All");
       setConfirmDialog(null);
     };
 
     if (cartItems.length > 0) {
       setConfirmDialog({
-        message: "Current sale has items. Restoring will replace it. Continue?",
+        message: "Current sale has items. Resuming will replace it. Continue?",
         onConfirm: doRestore,
       });
     } else {
@@ -332,7 +332,7 @@ export default function App() {
 
   function deleteParkedSale(id: string) {
     setConfirmDialog({
-      message: "Delete this parked sale?",
+      message: "Clear this parked sale? This cannot be undone.",
       onConfirm: () => {
         setParkedSales((p) => {
           const updated = p.filter((s) => s.id !== id);
@@ -342,7 +342,7 @@ export default function App() {
           }
           return updated;
         });
-        setToast({ message: "Deleted", type: "error" });
+        setToast({ message: "Parked sale cleared", type: "error" });
         setConfirmDialog(null);
       },
     });
@@ -350,11 +350,11 @@ export default function App() {
 
   function deleteAllParkedSales() {
     setConfirmDialog({
-      message: `Delete all ${parkedSales.length} parked sales? This cannot be undone.`,
+      message: `Clear all ${parkedSales.length} parked orders? This cannot be undone.`,
       onConfirm: () => {
         setParkedSales([]);
         setShowParkedSales(false);
-        setToast({ message: "All deleted", type: "error" });
+        setToast({ message: "All parked orders cleared", type: "error" });
         setConfirmDialog(null);
       },
     });
@@ -616,25 +616,15 @@ export default function App() {
       {/* Parked Sales Panel */}
       {showParkedSales && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-bold">Parked Sales ({parkedSales.length})</h2>
-              <div className="flex items-center gap-2">
-                {parkedSales.length > 0 && (
-                  <button
-                    onClick={deleteAllParkedSales}
-                    className="px-3 py-1.5 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition"
-                  >
-                    Clear All Parked
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowParkedSales(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-                >
-                  ✕
-                </button>
-              </div>
+              <button
+                onClick={() => setShowParkedSales(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              >
+                ✕
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               {parkedSales.length === 0 ? (
@@ -642,7 +632,7 @@ export default function App() {
                   No parked sales
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   {parkedSales.map((parked) => {
                     const parkedTotal = parked.items.reduce(
                       (sum, it) => sum + it.unitPrice * it.qty,
@@ -706,6 +696,16 @@ export default function App() {
                 </div>
               )}
             </div>
+            {parkedSales.length > 0 && (
+              <div className="border-t p-4 flex justify-center">
+                <button
+                  onClick={deleteAllParkedSales}
+                  className="px-6 py-2.5 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition"
+                >
+                  Clear All Parked Orders
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
