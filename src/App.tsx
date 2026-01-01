@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PRODUCTS } from "./data/products";
-import type { Product, ProductCategory, SaleDraft } from "./models/pos";
-import productPlaceholder from "./assets/tag-line-svgrepo-com.svg";
+import type { ProductCategory, SaleDraft } from "./models/pos";
 import {
   clearDraft,
   loadDraft,
@@ -56,15 +54,14 @@ type SaleHistoryItem = {
 
 /* ================= App ================= */
 
-const categories: (ProductCategory | "All")[] = [
-  "All",
-  "Drinks",
-  "Coffee",
-  "Snacks",
-  "Food",
-  "Desserts",
-  "Meals",
-];
+type Product = {
+  id: number;
+  title: string;
+  price: number;
+  description: string;
+  category: string;
+  image: string;
+};
 
 export default function App() {
   const searchRef = useRef<HTMLInputElement | null>(null);
@@ -78,6 +75,8 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [showParkedSales, setShowParkedSales] = useState(false);
   const [activeCategory, setActiveCategory] = useState<ProductCategory | "All">("All");
   const [sale, setSale] = useState<SaleDraft>(
@@ -100,22 +99,28 @@ export default function App() {
 
   const cartItems = sale.items;
 
+  // Get unique categories from products
+  const categories = useMemo<(ProductCategory | "All")[]>(() => {
+    const cats = new Set(products.map(p => p.category as ProductCategory));
+    return ["All", ...Array.from(cats)] as (ProductCategory | "All")[];
+  }, [products]);
+
   // Filtered products based on active category
   const filteredProducts = useMemo(() => {
-    if (activeCategory === "All") return PRODUCTS;
-    return PRODUCTS.filter(p => p.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === "All") return products;
+    return products.filter(p => p.category === activeCategory);
+  }, [activeCategory, products]);
 
   // Search results for dropdown (not filtering main grid)
   const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return PRODUCTS.filter((p) => 
-      p.name.toLowerCase().includes(q) || 
-      p.id.toLowerCase().includes(q) ||
-      p.barcode.includes(q)
+    return products.filter((p) => 
+      p.title.toLowerCase().includes(q) || 
+      p.id.toString().includes(q) ||
+      p.category.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, products]);
 
   const subtotal = useMemo(
     () => cartItems.reduce((sum, it) => sum + it.unitPrice * it.qty, 0),
@@ -126,6 +131,21 @@ export default function App() {
     () => [...cartItems].reverse(),
     [cartItems]
   );
+
+  /* ================= fetch products from API ================= */
+
+  useEffect(() => {
+    fetch('https://fakestoreapi.com/products')
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        setLoadingProducts(false);
+      })
+      .catch(err => {
+        console.error('Failed to load products:', err);
+        setLoadingProducts(false);
+      });
+  }, []);
 
   /* ================= persistence ================= */
 
@@ -182,15 +202,14 @@ export default function App() {
         barcodeTimerRef.current = window.setTimeout(() => {
           const barcode = barcodeBufferRef.current;
           if (barcode.length > 3) {
-            // Try to find product by barcode, ID, or name
-            const product = PRODUCTS.find(p => 
-              p.barcode === barcode ||
-              p.id.toLowerCase() === barcode.toLowerCase() ||
-              p.name.toLowerCase().includes(barcode.toLowerCase())
+            // Try to find product by ID or name
+            const product = products.find(p => 
+              p.id.toString() === barcode ||
+              p.title.toLowerCase().includes(barcode.toLowerCase())
             );
             if (product && !isTypingTarget(e.target)) {
               addToCartRef.current(product);
-              setToast({ message: product.name, type: "success" });
+              setToast({ message: product.title, type: "success" });
             }
           }
           barcodeBufferRef.current = "";
@@ -239,7 +258,7 @@ export default function App() {
 
   function addToCart(product: Product) {
     setSale((prev) => {
-      const idx = prev.items.findIndex((x) => x.productId === product.id);
+      const idx = prev.items.findIndex((x) => x.productId === product.id.toString());
       const items =
         idx >= 0
           ? prev.items.map((it, i) =>
@@ -248,8 +267,8 @@ export default function App() {
           : [
               ...prev.items,
               {
-                productId: product.id,
-                name: product.name,
+                productId: product.id.toString(),
+                name: product.title,
                 unitPrice: product.price,
                 qty: 1,
               },
@@ -459,9 +478,9 @@ export default function App() {
                     className="w-full px-4 py-3 text-left hover:bg-gray-50 transition flex justify-between items-center border-b last:border-b-0"
                   >
                     <div>
-                      <div className="text-sm font-semibold">{p.name}</div>
+                      <div className="text-sm font-semibold">{p.title}</div>
                       <div className="text-xs text-gray-500">
-                        Barcode: {p.barcode} • ID: {p.id}
+                        ID: {p.id} • {p.category}
                       </div>
                     </div>
                     <div className="text-sm font-bold">{money(p.price)}</div>
@@ -496,6 +515,11 @@ export default function App() {
 
           {/* Product Grid - Filtered by category */}
           <div className="overflow-y-scroll pb-4 pr-2">
+            {loadingProducts ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-gray-500">Loading products...</div>
+              </div>
+            ) : (
             <div className="grid grid-cols-5 gap-3">
             {filteredProducts.map((p) => (
               <button
@@ -504,13 +528,13 @@ export default function App() {
                 className="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition text-left focus:outline-none"
               >
                 <img
-                  src={productPlaceholder}
-                  alt={p.name}
+                  src={p.image}
+                  alt={p.title}
                   loading="lazy"
-                  className="aspect-square w-full object-contain rounded-lg mb-2 bg-gray-100 p-4 opacity-80"
+                  className="aspect-square w-full object-contain rounded-lg mb-2 p-4"
                 />
-                <div className="text-xs font-semibold mb-1">
-                  {p.name}
+                <div className="text-xs font-semibold mb-1 line-clamp-2">
+                  {p.title.split(' ').slice(0, 3).join(' ')}
                 </div>
                 <div className="flex justify-between items-center gap-2">
                   <span className="text-xs font-bold">{money(p.price)}</span>
@@ -521,6 +545,7 @@ export default function App() {
               </button>
             ))}
             </div>
+            )}
           </div>
         </main>
 
@@ -543,7 +568,7 @@ export default function App() {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate">
-                      {it.name}
+                      {it.name.split(' ').slice(0, 3).join(' ')}
                     </div>
                     <div className="text-xs text-gray-500">
                       {money(it.unitPrice)} × {it.qty}
@@ -698,7 +723,7 @@ export default function App() {
                               key={it.productId}
                               className="text-xs text-gray-600"
                             >
-                              <div className="truncate font-medium">{it.name}</div>
+                              <div className="truncate font-medium">{it.name.split(' ').slice(0, 3).join(' ')}</div>
                               <div className="text-gray-400">
                                 {money(it.unitPrice)} × {it.qty}
                               </div>
