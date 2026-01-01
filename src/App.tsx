@@ -387,9 +387,9 @@ export default function App() {
       {/* Body */}
       <div className="flex flex-1 gap-4 p-4 overflow-hidden">
         {/* Products - 2/3 of screen */}
-        <main className="flex-[2] overflow-y-auto flex flex-col gap-3">
+        <main className="flex-[2] flex flex-col gap-3">
           {/* Search Bar */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <div className="relative">
               <input
                 ref={searchRef}
@@ -446,7 +446,7 @@ export default function App() {
           </div>
 
           {/* Category Filter */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 flex-shrink-0">
             {categories.map(c => (
               <button
                 key={c}
@@ -463,7 +463,8 @@ export default function App() {
           </div>
 
           {/* Product Grid - Filtered by category */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="overflow-y-scroll pb-4 pr-2">
+            <div className="grid grid-cols-4 gap-3">
             {filteredProducts.map((p) => (
               <button
                 key={p.id}
@@ -487,6 +488,7 @@ export default function App() {
                 </div>
               </button>
             ))}
+            </div>
           </div>
         </main>
 
