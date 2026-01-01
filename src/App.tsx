@@ -585,21 +585,23 @@ export default function App() {
               <span>{money(subtotal)}</span>
             </div>
 
-            <button
-              onClick={completeSale}
-              disabled={cartItems.length === 0}
-              className="w-full bg-green-600 text-white rounded-xl py-3 font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600"
-            >
-              Complete Sale
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={completeSale}
+                disabled={cartItems.length === 0}
+                className="flex-[2] bg-green-600 text-white rounded-xl py-3 font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600"
+              >
+                Complete Sale
+              </button>
 
-            <button
-              onClick={parkSale}
-              disabled={cartItems.length === 0}
-              className="w-full rounded-xl py-2.5 font-semibold bg-amber-500 text-white hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
-            >
-              Park Sale
-            </button>
+              <button
+                onClick={parkSale}
+                disabled={cartItems.length === 0}
+                className="flex-[1] rounded-xl py-3 font-semibold bg-amber-500 text-white hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
+              >
+                Park
+              </button>
+            </div>
 
             <button
               onClick={clearSale}
