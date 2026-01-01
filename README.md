@@ -258,6 +258,13 @@ Every design decision was made to reduce friction during high-pressure, high-vol
 
 ---
 
+## 🤖 Use of AI Tools
+
+AI tools were used during development to explore UX patterns, validate POS design decisions, and review edge cases.  
+All final decisions, structure, and implementation choices were made manually.
+
+---
+
 ## 👨‍💻 Author
 
 **Zaid Aldissi**  
