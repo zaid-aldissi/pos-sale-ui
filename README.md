@@ -270,8 +270,3 @@ All final decisions, structure, and implementation choices were made manually.
 **Zaid Aldissi**  
 GitHub: [@zaid-aldissi](https://github.com/zaid-aldissi)
 
----
-
-## 📄 License
-
-MIT License – Free to use in personal or commercial projects.
